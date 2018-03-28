@@ -20,8 +20,8 @@
             <TextBlock x:Name="ChoosenPath" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
         <ScrollViewer Grid.Row="1">
-            <Grid  x:Name="RootContainer">
-            </Grid>
+            <Border  x:Name="RootContainer">
+            </Border>
         </ScrollViewer>
     </Grid>
 </Window>

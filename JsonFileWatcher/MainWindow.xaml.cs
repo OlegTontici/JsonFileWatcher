@@ -3,11 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics;
 using JsonFileWatcher.NodePresenters;
 using JsonFileWatcher.JsonParser;
+using System.Diagnostics;
 
 namespace JsonFileWatcher
 {
@@ -39,7 +38,7 @@ namespace JsonFileWatcher
                 ChoosenPath.Text = fileName;
                 var tree = CreateUiTree(jsonParser.Parse(File.ReadAllText(fileName)));
 
-                RootContainer.Children.Add(tree);
+                RootContainer.Child = tree;
 
                 FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(Directory.GetParent(fileName).FullName, new FileInfo(fileName).Name)
                 {
@@ -49,19 +48,29 @@ namespace JsonFileWatcher
 
                 fileSystemWatcher.Changed += async (s, a) =>
                 {
+                    string data = string.Empty;
+
+                    try
+                    {
+                        data = File.ReadAllText(fileName);
+                    }
+                    catch (Exception)
+                    {
+                        data = File.ReadAllText(fileName);
+                    }
+
+                    fileSystemWatcher.EnableRaisingEvents = false;
+
                     await Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Render, new Action(()=>
                     {
-                        fileSystemWatcher.EnableRaisingEvents = false;
-                        try
-                        {
-                            RootContainer.Children.Clear();
-                            RootContainer.Children.Add(CreateUiTree(jsonParser.Parse(File.ReadAllText(fileName))));
-                        }
-                        catch (Exception ex )
-                        {
-                            RootContainer.Children.Clear();
-                            RootContainer.Children.Add(CreateUiTree(jsonParser.Parse(File.ReadAllText(fileName))));
-                        }
+                        Stopwatch stopwatch = new Stopwatch();
+
+                        stopwatch.Start();
+                        FrameworkElement newTree = CreateUiTree(jsonParser.Parse(data));
+                       
+                        RootContainer.Child = newTree;
+                        stopwatch.Stop();
+
                     }));
 
                     fileSystemWatcher.EnableRaisingEvents = true;
