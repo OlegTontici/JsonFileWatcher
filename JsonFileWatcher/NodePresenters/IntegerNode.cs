@@ -1,16 +1,26 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media;
 
 namespace JsonFileWatcher.NodePresenters
 {
     public class IntegerNode : INode
     {
         private TextBlock propertyInfo;
-        public IntegerNode(object propertyValue)
+        public IntegerNode(ObjectNodeData node)
         {
-            if (propertyValue != null)
+            if (node.Value != null)
             {
-                propertyInfo = new TextBlock { Text = propertyValue.ToString() };
+                Binding b = new Binding("Value")
+                {
+                    Source = node
+                };
+
+                propertyInfo = new TextBlock { Background = Brushes.White };
+                propertyInfo.SetBinding(TextBlock.TextProperty, b);
+
+                node.PropertyChanged += new ChangedValueMarker(propertyInfo, "(TextBlock.Background).(SolidColorBrush.Color)").Animate;
             }
         }
         

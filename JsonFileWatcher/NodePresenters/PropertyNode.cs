@@ -1,5 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media;
 
 namespace JsonFileWatcher.NodePresenters
 {
@@ -7,13 +9,23 @@ namespace JsonFileWatcher.NodePresenters
     {
         private TextBlock propertyInfo;
 
-        public PropertyNode(string propertyName,object propertyValue)
+        public PropertyNode(ObjectNodeData node)
         {
-            propertyInfo = new TextBlock { Text = $"\"{propertyName}\" : " };
+            propertyInfo = new TextBlock { Text = $"\"{node.Name}\" : " };
 
-            if (propertyValue != null)
+            if (node.Value != null)
             {
-                propertyInfo.Text += propertyValue;
+                Binding b = new Binding("Value")
+                {
+                    Source = node
+                };
+
+                TextBlock valueTb = new TextBlock { Background = Brushes.White };
+                valueTb.SetBinding(TextBlock.TextProperty, b);
+
+                propertyInfo.Inlines.Add(valueTb);
+
+                node.PropertyChanged += new ChangedValueMarker(valueTb, "(TextBlock.Background).(SolidColorBrush.Color)").Animate;
             }
 
             nodeContainer.Children.Add(propertyInfo);

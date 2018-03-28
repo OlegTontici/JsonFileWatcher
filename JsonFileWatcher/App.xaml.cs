@@ -13,5 +13,12 @@ namespace JsonFileWatcher
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            AppDomain.CurrentDomain.UnhandledException += (s, a) =>
+            {
+
+            };
+        }
     }
 }

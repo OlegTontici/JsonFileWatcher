@@ -1,12 +1,16 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.IO;
 using System.Windows;
 using Newtonsoft.Json.Linq;
 using JsonFileWatcher.NodePresenters;
 using JsonFileWatcher.JsonParser;
 using System.Diagnostics;
+using System.ComponentModel;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace JsonFileWatcher
 {
@@ -16,6 +20,7 @@ namespace JsonFileWatcher
     public partial class MainWindow : Window
     {
         IJsonParser jsonParser;
+        ObjectNodeData objectsTree;
         public MainWindow()
         {
             InitializeComponent();
@@ -36,9 +41,10 @@ namespace JsonFileWatcher
                 string fileName = openFileDialog.FileName;
 
                 ChoosenPath.Text = fileName;
-                var tree = CreateUiTree(jsonParser.Parse(File.ReadAllText(fileName)));
 
-                RootContainer.Child = tree;
+                objectsTree = jsonParser.Parse(File.ReadAllText(fileName));
+                
+                RootContainer.Child = CreateUiTree(objectsTree); ;
 
                 FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(Directory.GetParent(fileName).FullName, new FileInfo(fileName).Name)
                 {
@@ -46,7 +52,7 @@ namespace JsonFileWatcher
                     EnableRaisingEvents = true
                 };
 
-                fileSystemWatcher.Changed += async (s, a) =>
+                fileSystemWatcher.Changed += (s, a) =>
                 {
                     string data = string.Empty;
 
@@ -61,17 +67,8 @@ namespace JsonFileWatcher
 
                     fileSystemWatcher.EnableRaisingEvents = false;
 
-                    await Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Render, new Action(()=>
-                    {
-                        Stopwatch stopwatch = new Stopwatch();
-
-                        stopwatch.Start();
-                        FrameworkElement newTree = CreateUiTree(jsonParser.Parse(data));
-                       
-                        RootContainer.Child = newTree;
-                        stopwatch.Stop();
-
-                    }));
+                    var updateCandidate = objectsTree.FirstOrDefaultRecursive(o => o.Type == NodeType.Integer && o.Value != null);
+                    updateCandidate.Value = new Random().Next(30);
 
                     fileSystemWatcher.EnableRaisingEvents = true;
                 };
@@ -89,10 +86,10 @@ namespace JsonFileWatcher
                     nodePresenter = new ObjectNode();
                     break;
                 case NodeType.String:
-                    nodePresenter = new StringNode(node.Value);
+                    nodePresenter = new StringNode(node);
                     break;
                 case NodeType.Integer:
-                    nodePresenter = new IntegerNode(node.Value);
+                    nodePresenter = new IntegerNode(node);
                     break;
                 case NodeType.Boolean:
                     break;
@@ -110,7 +107,7 @@ namespace JsonFileWatcher
                 case NodeType.Null:
                     break;
                 case NodeType.Property:
-                    nodePresenter = new PropertyNode(node.Name, node.Value);
+                    nodePresenter = new PropertyNode(node);
                     break;
                 case NodeType.None:
                     break;
@@ -135,23 +132,36 @@ namespace JsonFileWatcher
     }
     
 
-    public class ObjectNodeData
+    public class ObjectNodeData : INotifyPropertyChanged
     {
+        private object _value;
+
         public NodeType Type { get; set; }
-        public List<ObjectNodeData> Children { get; set; }
+        public ObservableCollection<ObjectNodeData> Children { get; set; }
         public string Name { get; set; }
-        public object Value { get; set; }
+
+        public object Value
+        {
+            get { return _value; }
+            set
+            {
+                _value = value;
+                NotifyPropertyChanged(nameof(Value));
+            }
+        }
 
 
         public ObjectNodeData(JTokenType type)
         {
-            Children = new List<ObjectNodeData>();
+            Children = new ObservableCollection<ObjectNodeData>();
             Type = GetNodeType(type);
         }
         public ObjectNodeData()
         {
 
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         private NodeType GetNodeType(JTokenType type)
         {
@@ -202,6 +212,32 @@ namespace JsonFileWatcher
                 string ad = "';";
             }
             return nodeType;
+        }
+        private void NotifyPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public ObjectNodeData FirstOrDefaultRecursive(Func<ObjectNodeData, bool> selector)
+        {
+            var found = selector(this);
+
+            if (!found)
+            {
+                foreach (var item in this.Children)
+                {
+                    var result = item.FirstOrDefaultRecursive(selector);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+            else
+            {
+                return this;
+            }
+            return null;
         }
     }
 
