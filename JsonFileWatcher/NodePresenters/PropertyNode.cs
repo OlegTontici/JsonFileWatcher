@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 
 namespace JsonFileWatcher.NodePresenters
 {
@@ -17,6 +18,12 @@ namespace JsonFileWatcher.NodePresenters
 
             nodeContainer.Children.Add(propertyInfo);
             nodeContainer.Children.Add(childContainer);
+        }
+
+        public override void AddChild(FrameworkElement child)
+        {
+            child.Margin = new Thickness(0, 0, 0, 0);
+            childContainer.Children.Add(child);
         }
     }
 }
