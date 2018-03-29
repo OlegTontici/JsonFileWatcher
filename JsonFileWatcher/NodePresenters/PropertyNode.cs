@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using JsonFileWatcher.Converters;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -17,7 +18,8 @@ namespace JsonFileWatcher.NodePresenters
             {
                 Binding b = new Binding("Value")
                 {
-                    Source = node
+                    Source = node,
+                    Converter = new ObjectToFormatedStringConverter()
                 };
 
                 TextBlock valueTb = new TextBlock { Background = Brushes.White };

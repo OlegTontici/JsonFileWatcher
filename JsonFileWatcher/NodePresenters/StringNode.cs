@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using JsonFileWatcher.Converters;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,7 +15,8 @@ namespace JsonFileWatcher.NodePresenters
             {
                 Binding b = new Binding("Value")
                 {
-                    Source = node
+                    Source = node,
+                    Converter = new ObjectToFormatedStringConverter()
                 };
 
                 propertyInfo = new TextBlock { Background = Brushes.White };
@@ -30,18 +30,5 @@ namespace JsonFileWatcher.NodePresenters
         {
             return propertyInfo;
         }
-    }
-
-    class ChangeToBackgroundConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return Brushes.Red;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    }   
 }

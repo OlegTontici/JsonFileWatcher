@@ -1,17 +1,12 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.Collections;
 using System.IO;
 using System.Windows;
 using Newtonsoft.Json.Linq;
 using JsonFileWatcher.NodePresenters;
 using JsonFileWatcher.JsonParser;
-using System.Diagnostics;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace JsonFileWatcher
 {
@@ -20,8 +15,9 @@ namespace JsonFileWatcher
     /// </summary>
     public partial class MainWindow : Window
     {
-        IJsonParser jsonParser;
-        ObjectNodeData objectsTree;
+        private const string fileExtensionFilter = "(*.json) | *.json";
+        private IJsonParser jsonParser;
+        private ObjectNodeData objectsTree;
         public MainWindow()
         {
             InitializeComponent();
@@ -32,7 +28,7 @@ namespace JsonFileWatcher
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "(*.json) | *.json"
+                Filter = fileExtensionFilter
             };
 
             openFileDialog.ShowDialog();
@@ -67,9 +63,6 @@ namespace JsonFileWatcher
                     }
 
                     fileSystemWatcher.EnableRaisingEvents = false;
-
-                    //var updateCandidate = objectsTree.FirstOrDefaultRecursive(o => o.Type == NodeType.Integer && o.Value != null);
-                    //updateCandidate.Value = new Random().Next(30);
 
                     ObjectNodeData newObjectsTree = jsonParser.Parse($"{{ \"data\" :{File.ReadAllText(fileName)} }}");
                     UpdateObjectTree(newObjectsTree, objectsTree);
@@ -138,11 +131,14 @@ namespace JsonFileWatcher
         {
             foreach (var item in newValue.Children)
             {
-                var oldPropValue = oldValue.FirstOrDefaultRecursive(v => v.Id == item.Id);
-
-                if(oldPropValue != null && oldPropValue.Value !=null && oldPropValue.Value.ToString() != item.Value.ToString())
+                if(item.Value != null)
                 {
-                    oldPropValue.Value = item.Value;
+                    var oldPropValue = oldValue.FirstOrDefaultRecursive(v => v.Id == item.Id);
+
+                    if (oldPropValue != null && oldPropValue.Value != null && oldPropValue.Value.ToString() != item.Value.ToString())
+                    {
+                        oldPropValue.Value = item.Value;
+                    }
                 }
                 else
                 {
@@ -228,10 +224,6 @@ namespace JsonFileWatcher
                     throw new ArgumentException();
             }
 
-            if(nodeType == NodeType.None)
-            {
-                string ad = "';";
-            }
             return nodeType;
         }
         public ObjectNodeData FirstOrDefaultRecursive(Func<ObjectNodeData, bool> selector)

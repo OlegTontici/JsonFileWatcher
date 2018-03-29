@@ -70,6 +70,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ChangedValueMarker.cs" />
+    <Compile Include="Converters\StringToFormatedStringConverter.cs" />
     <Compile Include="JsonParser\IJsonParser.cs" />
     <Compile Include="JsonParser\JsonParser.cs" />
     <Compile Include="MainWindow.xaml.cs">
