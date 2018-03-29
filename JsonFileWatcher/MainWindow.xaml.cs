@@ -24,6 +24,20 @@ namespace JsonFileWatcher
             jsonParser = new JsonParser.JsonParser();
         }
 
+        public void OnSourceUpdate(string json)
+        {
+            if(RootContainer.Child == null)
+            {
+                objectsTree = jsonParser.Parse($"{{ \"data\" :{json} }}");
+
+                RootContainer.Child = CreateUiTree(objectsTree);
+                return;
+            }
+
+            ObjectNodeData newObjectsTree = jsonParser.Parse($"{{ \"data\" :{json} }}");
+            UpdateObjectTree(newObjectsTree, objectsTree);
+        }
+
         private void ChooseFileButtonClickEventHandler(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
@@ -37,11 +51,9 @@ namespace JsonFileWatcher
             {
                 string fileName = openFileDialog.FileName;
 
-                ChoosenPath.Text = fileName;
+                ChoosenPath.Text = fileName;                
 
-                objectsTree = jsonParser.Parse($"{{ \"data\" :{File.ReadAllText(fileName)} }}");
-                
-                RootContainer.Child = CreateUiTree(objectsTree);
+                OnSourceUpdate(File.ReadAllText(fileName));
 
                 FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(Directory.GetParent(fileName).FullName, new FileInfo(fileName).Name)
                 {
@@ -64,8 +76,7 @@ namespace JsonFileWatcher
 
                     fileSystemWatcher.EnableRaisingEvents = false;
 
-                    ObjectNodeData newObjectsTree = jsonParser.Parse($"{{ \"data\" :{File.ReadAllText(fileName)} }}");
-                    UpdateObjectTree(newObjectsTree, objectsTree);
+                    OnSourceUpdate(File.ReadAllText(fileName));
 
                     fileSystemWatcher.EnableRaisingEvents = true;
                 };

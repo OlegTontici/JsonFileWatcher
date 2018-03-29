@@ -1,6 +1,7 @@
 ﻿using JsonFileWatcher.NodePresenters;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace JsonFileWatcher
 {
@@ -11,9 +12,15 @@ namespace JsonFileWatcher
         {
             Orientation = Orientation.Horizontal;
             Button expandButton = new Button {
-                Style = (Style)FindResource("ExpanderButtonStyle"),
-                Content = "-"
-            };
+                Content = "-",
+                Width = 20,
+                Height = 20,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(-20, 0, 0, 0),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0)
+        };
+
             Children.Add(expandButton);
             Children.Add(node.GetNode());
 
