@@ -30,7 +30,10 @@ namespace JsonFileWatcher.JsonParser
 
         private ObjectNodeData GetNodes(JToken parrent)
         {
-            ObjectNodeData node = new ObjectNodeData(parrent.Type);
+            ObjectNodeData node = new ObjectNodeData(parrent.Type)
+            {
+                Id = parrent.Path
+            };
 
             if (parrent.Type == JTokenType.String || parrent.Type == JTokenType.Integer)
             {

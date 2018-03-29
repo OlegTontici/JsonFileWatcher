@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace JsonFileWatcher
 {
@@ -42,9 +43,9 @@ namespace JsonFileWatcher
 
                 ChoosenPath.Text = fileName;
 
-                objectsTree = jsonParser.Parse(File.ReadAllText(fileName));
+                objectsTree = jsonParser.Parse($"{{ \"data\" :{File.ReadAllText(fileName)} }}");
                 
-                RootContainer.Child = CreateUiTree(objectsTree); ;
+                RootContainer.Child = CreateUiTree(objectsTree);
 
                 FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(Directory.GetParent(fileName).FullName, new FileInfo(fileName).Name)
                 {
@@ -67,8 +68,11 @@ namespace JsonFileWatcher
 
                     fileSystemWatcher.EnableRaisingEvents = false;
 
-                    var updateCandidate = objectsTree.FirstOrDefaultRecursive(o => o.Type == NodeType.Integer && o.Value != null);
-                    updateCandidate.Value = new Random().Next(30);
+                    //var updateCandidate = objectsTree.FirstOrDefaultRecursive(o => o.Type == NodeType.Integer && o.Value != null);
+                    //updateCandidate.Value = new Random().Next(30);
+
+                    ObjectNodeData newObjectsTree = jsonParser.Parse($"{{ \"data\" :{File.ReadAllText(fileName)} }}");
+                    UpdateObjectTree(newObjectsTree, objectsTree);
 
                     fileSystemWatcher.EnableRaisingEvents = true;
                 };
@@ -129,6 +133,23 @@ namespace JsonFileWatcher
 
             return nodePresenter.GetNode();
         }
+
+        private void UpdateObjectTree(ObjectNodeData newValue, ObjectNodeData oldValue)
+        {
+            foreach (var item in newValue.Children)
+            {
+                var oldPropValue = oldValue.FirstOrDefaultRecursive(v => v.Id == item.Id);
+
+                if(oldPropValue != null && oldPropValue.Value !=null && oldPropValue.Value.ToString() != item.Value.ToString())
+                {
+                    oldPropValue.Value = item.Value;
+                }
+                else
+                {
+                    UpdateObjectTree(item, oldValue);
+                }
+            }
+        }
     }
     
 
@@ -136,10 +157,10 @@ namespace JsonFileWatcher
     {
         private object _value;
 
+        public string Id { get; set; }
         public NodeType Type { get; set; }
         public ObservableCollection<ObjectNodeData> Children { get; set; }
         public string Name { get; set; }
-
         public object Value
         {
             get { return _value; }
@@ -213,11 +234,6 @@ namespace JsonFileWatcher
             }
             return nodeType;
         }
-        private void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         public ObjectNodeData FirstOrDefaultRecursive(Func<ObjectNodeData, bool> selector)
         {
             var found = selector(this);
@@ -238,6 +254,11 @@ namespace JsonFileWatcher
                 return this;
             }
             return null;
+        }
+
+        private void NotifyPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 
