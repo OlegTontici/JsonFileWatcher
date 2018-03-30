@@ -53,9 +53,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\JsonFileWatcher\JsonFileWatcher.csproj">
+    <ProjectReference Include="..\JsonFileWatcher\JsonChangesWatcher.csproj">
       <Project>{1e5e0758-ee13-4705-9fc3-504898a0442e}</Project>
-      <Name>JsonFileWatcher</Name>
+      <Name>JsonChangesWatcher</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

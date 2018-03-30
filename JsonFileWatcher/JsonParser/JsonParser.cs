@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using JsonFileWatcher.Models;
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace JsonFileWatcher.JsonParser

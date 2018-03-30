@@ -1,4 +1,5 @@
 ﻿using JsonFileWatcher.Converters;
+using JsonFileWatcher.Models;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;

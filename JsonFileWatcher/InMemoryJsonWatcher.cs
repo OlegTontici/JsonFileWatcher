@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace JsonFileWatcher
 {
     public class InMemoryJsonWatcher
     {
-        private MainWindow MW = null;
+        private SimpleWindow MW = null;
         Application application;
         public InMemoryJsonWatcher()
         {
             Thread t = new Thread(new ThreadStart(() =>
             {
                 application = new Application();
-                MW = new MainWindow();
+                MW = new SimpleWindow();
                 MW.ShowDialog();
             }));
 
