@@ -24,6 +24,7 @@ namespace JsonFileWatcher
             storyboard = new Storyboard();
             storyboard.Children.Add(colorAnimation);
             Storyboard.SetTargetProperty(colorAnimation, new PropertyPath(propPath));
+            Storyboard.SetTarget(colorAnimation, element);
         }
 
         public void Animate(object sender,PropertyChangedEventArgs a)
@@ -32,7 +33,6 @@ namespace JsonFileWatcher
             {
                 Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
-                    Storyboard.SetTarget(colorAnimation, element);
                     storyboard.Begin();
                 }));
             }
