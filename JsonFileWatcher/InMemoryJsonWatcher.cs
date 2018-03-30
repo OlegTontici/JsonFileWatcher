@@ -19,13 +19,11 @@ namespace JsonFileWatcher
 
             t.SetApartmentState(ApartmentState.STA);
             t.Start();
-
-            Thread.Sleep(1000);
         }
 
         public void OnDataUpdate(string data)
         {
-            application.Dispatcher.BeginInvoke(new Action(() =>
+            application?.Dispatcher.BeginInvoke(new Action(() =>
             {
                 MW?.OnSourceUpdate(data);
             }));
