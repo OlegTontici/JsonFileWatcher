@@ -1,6 +1,7 @@
 ﻿using JsonFileWatcher.JsonParser;
 using JsonFileWatcher.Models;
 using JsonFileWatcher.NodePresenters;
+using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -8,19 +9,44 @@ namespace JsonFileWatcher
 {
     public class JsonView : Border
     {
+        Hashtable flattenObjectsTree;
         private IJsonParser jsonParser;
-        private ObjectNodeData objectsTree;
         public JsonView(string json)
         {
+            flattenObjectsTree = new Hashtable();
             jsonParser = new JsonParser.JsonParser();
-            objectsTree = jsonParser.Parse($"{{ \"data\" :{json} }}");
+
+            ObjectNodeData objectsTree = jsonParser.Parse($"{{ \"data\" :{json} }}");
             Child = CreateUiTree(objectsTree);
+
+            FlatObjectsTree(objectsTree);
+            RemoveChilds();
         }
 
         public void OnSourceUpdate(string json)
         {
             ObjectNodeData newObjectsTree = jsonParser.Parse($"{{ \"data\" :{json} }}");
-            UpdateObjectTree(newObjectsTree, objectsTree);
+            UpdateObjectTree(newObjectsTree, flattenObjectsTree);
+        }
+
+        private void FlatObjectsTree(ObjectNodeData node)
+        {
+            foreach (var item in node.Children)
+            {
+                if (!flattenObjectsTree.ContainsKey(item.Id))
+                {
+                    flattenObjectsTree.Add(item.Id, item);
+                }
+                FlatObjectsTree(item);
+            }
+        }
+
+        private void RemoveChilds()
+        {
+            foreach (DictionaryEntry item in flattenObjectsTree)
+            {
+                ((ObjectNodeData)item.Value).Children = null;
+            }
         }
 
         private FrameworkElement CreateUiTree(ObjectNodeData node)
@@ -76,13 +102,13 @@ namespace JsonFileWatcher
 
             return nodePresenter.GetNode();
         }
-        private void UpdateObjectTree(ObjectNodeData newValue, ObjectNodeData oldValue)
+        private void UpdateObjectTree(ObjectNodeData newValue, Hashtable oldValue)
         {
             foreach (var item in newValue.Children)
             {
                 if (item.Value != null)
                 {
-                    var oldPropValue = oldValue.FirstOrDefaultRecursive(v => v.Id == item.Id);
+                    ObjectNodeData oldPropValue = (ObjectNodeData)oldValue[item.Id];
 
                     if (oldPropValue != null && oldPropValue.Value != null && oldPropValue.Value.ToString() != item.Value.ToString())
                     {
