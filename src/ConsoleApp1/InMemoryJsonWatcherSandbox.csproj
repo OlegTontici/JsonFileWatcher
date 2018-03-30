@@ -53,8 +53,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\JsonFileWatcher\JsonChangesWatcher.csproj">
-      <Project>{1e5e0758-ee13-4705-9fc3-504898a0442e}</Project>
+    <ProjectReference Include="..\JsonChangesWatcher\JsonChangesWatcher.csproj">
+      <Project>{1E5E0758-EE13-4705-9FC3-504898A0442E}</Project>
       <Name>JsonChangesWatcher</Name>
     </ProjectReference>
   </ItemGroup>

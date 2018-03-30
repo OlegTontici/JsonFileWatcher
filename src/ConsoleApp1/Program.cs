@@ -2,7 +2,7 @@
 using System;
 using System.Threading;
 
-namespace ConsoleApp1
+namespace InMemoryJsonWatcherSandbox
 {
     class Program
     {
