@@ -11,7 +11,7 @@ namespace JsonFileWatcher.NodePresenters
     {
         private TextBlock propertyInfo;
 
-        public PropertyNode(ObjectNodeData node)
+        public PropertyNode(ObjectNodeData node) : base(node)
         {
             propertyInfo = new TextBlock { Text = $"\"{node.Name}\" : " };
 
@@ -37,8 +37,8 @@ namespace JsonFileWatcher.NodePresenters
 
         public override void AddChild(FrameworkElement child)
         {
-            child.Margin = new Thickness(0, 0, 0, 0);
-            childContainer.Children.Add(child);
+            //child.Margin = new Thickness(0, 0, 0, 0);
+            //childContainer.Children.Add(child);
         }
     }
 }

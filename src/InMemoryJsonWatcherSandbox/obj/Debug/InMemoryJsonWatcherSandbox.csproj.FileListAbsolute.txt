@@ -10,3 +10,15 @@ C:\Users\olegt\source\repos\JsonFileWatcher\src\ConsoleApp1\obj\Debug\InMemoryJs
 C:\Users\olegt\source\repos\JsonFileWatcher\src\ConsoleApp1\obj\Debug\InMemoryJsonWatcherSandbox.csproj.CoreCompileInputs.cache
 C:\Users\olegt\source\repos\JsonFileWatcher\src\ConsoleApp1\obj\Debug\ConsoleApp1.exe
 C:\Users\olegt\source\repos\JsonFileWatcher\src\ConsoleApp1\obj\Debug\ConsoleApp1.pdb
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\bin\Debug\ConsoleApp1.exe.config
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\bin\Debug\ConsoleApp1.exe
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\bin\Debug\ConsoleApp1.pdb
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\bin\Debug\JsonFileWatcher.exe
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\bin\Debug\Newtonsoft.Json.dll
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\bin\Debug\JsonFileWatcher.pdb
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\bin\Debug\JsonFileWatcher.exe.config
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\bin\Debug\Newtonsoft.Json.xml
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\obj\Debug\InMemoryJsonWatcherSandbox.csprojResolveAssemblyReference.cache
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\obj\Debug\InMemoryJsonWatcherSandbox.csproj.CoreCompileInputs.cache
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\obj\Debug\ConsoleApp1.exe
+C:\Users\olegt\source\repos\JsonFileWatcher\src\InMemoryJsonWatcherSandbox\obj\Debug\ConsoleApp1.pdb

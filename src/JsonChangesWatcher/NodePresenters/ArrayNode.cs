@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using JsonFileWatcher.Models;
+using System.Windows.Controls;
 
 namespace JsonFileWatcher.NodePresenters
 {
@@ -7,7 +8,7 @@ namespace JsonFileWatcher.NodePresenters
         private TextBlock open;
         private TextBlock close;
 
-        public ArrayNode()
+        public ArrayNode(ObjectNodeData nodeData) : base(nodeData)
         {
             open = new TextBlock { Text = "[" };
             close = new TextBlock { Text = "]" };

@@ -31,10 +31,11 @@ namespace JsonFileWatcher
         {
             ObjectNodeData newObjectsTree = jsonParser.Parse($"{{ \"data\" :{json} }}");
 
-            var mofificationInfo = HasBeenObjectsTreeModified(newObjectsTree);
-            if (mofificationInfo.ModificationsOccured)
+            ObjectTreeModificationInfo modificationInfo = GetObjectsTreeModificationInfo(newObjectsTree);
+
+            if (modificationInfo.ModificationsOccured)
             {
-                foreach (var key in mofificationInfo.RemovedKeys.ToList())
+                foreach (var key in modificationInfo.RemovedKeys)
                 {
                     flattenObjectsTree.Remove(key);
                 }
@@ -46,14 +47,13 @@ namespace JsonFileWatcher
                     RemoveChilds();
                 }));
 
-
                 return;
             }
 
             UpdateObjectTree(newObjectsTree, flattenObjectsTree);
         }
 
-        private ObjectTreeModificationInfo HasBeenObjectsTreeModified(ObjectNodeData newNode)
+        private ObjectTreeModificationInfo GetObjectsTreeModificationInfo(ObjectNodeData newNode)
         {
             ObjectTreeModificationInfo objectTreeModificationInfo = new ObjectTreeModificationInfo();
 
@@ -93,7 +93,7 @@ namespace JsonFileWatcher
             switch (node.Type)
             {
                 case NodeType.Object:
-                    nodePresenter = new ObjectNode();
+                    nodePresenter = new ObjectNode(node);
                     break;
                 case NodeType.String:
                     nodePresenter = new StringNode(node);
@@ -104,7 +104,7 @@ namespace JsonFileWatcher
                 case NodeType.Boolean:
                     break;
                 case NodeType.Array:
-                    nodePresenter = new ArrayNode();
+                    nodePresenter = new ArrayNode(node);
                     break;
                 case NodeType.Uri:
                     break;
@@ -125,22 +125,13 @@ namespace JsonFileWatcher
                     break;
             }
 
-            foreach (var item in node.Children)
-            {
-                var child = CreateUiTree(item);
-                if (child != null && nodePresenter != null)
-                {
-                    ((ICompositeNode)nodePresenter).AddChild(child);
-                }
-            };
-
             if (node.Type == NodeType.Object || node.Type == NodeType.Array)
                 return new NodeExpander(((ICompositeNode)nodePresenter));
 
             return nodePresenter.GetNode();
         }
         private void UpdateObjectTree(ObjectNodeData newValue, Hashtable oldValue)
-        {           
+        {
             foreach (var item in newValue.Children)
             {
                 if (item.Value != null)
@@ -171,6 +162,12 @@ namespace JsonFileWatcher
             RemovedKeys = new List<string>();
         }
 
-        public bool ModificationsOccured { get { return AddedKeys.Any() || RemovedKeys.Any(); }  }
+        public bool ModificationsOccured
+        {
+            get
+            {
+                return AddedKeys.Any() || RemovedKeys.Any();
+            }
+        }
     }
 }
