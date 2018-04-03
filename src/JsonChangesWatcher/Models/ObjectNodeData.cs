@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -8,10 +9,10 @@ namespace JsonFileWatcher.Models
     public class ObjectNodeData : INotifyPropertyChanged
     {
         private object _value;
+        private ObservableCollection<ObjectNodeData> _children;
 
         public string Id { get; set; }
         public NodeType Type { get; set; }
-        public ObservableCollection<ObjectNodeData> Children { get; set; }
         public string Name { get; set; }
         public object Value
         {
@@ -22,11 +23,19 @@ namespace JsonFileWatcher.Models
                 NotifyPropertyChanged(nameof(Value));
             }
         }
+        public ObservableCollection<ObjectNodeData> Children
+        {
+            get
+            {
+                return _children;
+            }
+        }
 
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public ObjectNodeData(JTokenType type)
         {
-            Children = new ObservableCollection<ObjectNodeData>();
+            _children = new ObservableCollection<ObjectNodeData>();
             Type = GetNodeType(type);
         }
         public ObjectNodeData()
@@ -34,7 +43,10 @@ namespace JsonFileWatcher.Models
 
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public void AddChild(ObjectNodeData child)
+        {
+            _children.Add(child);
+        }
 
         private NodeType GetNodeType(JTokenType type)
         {
@@ -82,28 +94,6 @@ namespace JsonFileWatcher.Models
 
             return nodeType;
         }
-        public ObjectNodeData FirstOrDefaultRecursive(Func<ObjectNodeData, bool> selector)
-        {
-            var found = selector(this);
-
-            if (!found)
-            {
-                foreach (var item in this.Children)
-                {
-                    var result = item.FirstOrDefaultRecursive(selector);
-                    if (result != null)
-                    {
-                        return result;
-                    }
-                }
-            }
-            else
-            {
-                return this;
-            }
-            return null;
-        }
-
         private void NotifyPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -124,5 +114,5 @@ namespace JsonFileWatcher.Models
         Null,
         Property,
         None
-    }
+    }    
 }

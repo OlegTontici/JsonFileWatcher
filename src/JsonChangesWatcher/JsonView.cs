@@ -1,9 +1,13 @@
-﻿using JsonFileWatcher.JsonParser;
+﻿using JsonFileWatcher.Extensions;
+using JsonFileWatcher.JsonParser;
 using JsonFileWatcher.Models;
 using JsonFileWatcher.NodePresenters;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
+using System.Linq;
+using System;
+using System.Collections.Generic;
 
 namespace JsonFileWatcher
 {
@@ -26,7 +30,40 @@ namespace JsonFileWatcher
         public void OnSourceUpdate(string json)
         {
             ObjectNodeData newObjectsTree = jsonParser.Parse($"{{ \"data\" :{json} }}");
+
+            var mofificationInfo = HasBeenObjectsTreeModified(newObjectsTree);
+            if (mofificationInfo.ModificationsOccured)
+            {
+                foreach (var key in mofificationInfo.RemovedKeys.ToList())
+                {
+                    flattenObjectsTree.Remove(key);
+                }
+
+                Dispatcher.BeginInvoke(new Action(() => 
+                {
+                    Child = CreateUiTree(newObjectsTree);
+                    FlatObjectsTree(newObjectsTree);
+                    RemoveChilds();
+                }));
+
+
+                return;
+            }
+
             UpdateObjectTree(newObjectsTree, flattenObjectsTree);
+        }
+
+        private ObjectTreeModificationInfo HasBeenObjectsTreeModified(ObjectNodeData newNode)
+        {
+            ObjectTreeModificationInfo objectTreeModificationInfo = new ObjectTreeModificationInfo();
+
+            var newKeys = newNode.Children.SelectManyRecursive(node => node.Children).Select( n => n.Id);
+            var oldKeys = flattenObjectsTree.Keys.Cast<string>();
+
+            objectTreeModificationInfo.AddedKeys = newKeys.Except(oldKeys);
+            objectTreeModificationInfo.RemovedKeys = oldKeys.Except(newKeys);
+
+            return objectTreeModificationInfo;
         }
 
         private void FlatObjectsTree(ObjectNodeData node)
@@ -45,7 +82,7 @@ namespace JsonFileWatcher
         {
             foreach (DictionaryEntry item in flattenObjectsTree)
             {
-                ((ObjectNodeData)item.Value).Children = null;
+                ((ObjectNodeData)item.Value).Children.Clear();
             }
         }
 
@@ -103,7 +140,7 @@ namespace JsonFileWatcher
             return nodePresenter.GetNode();
         }
         private void UpdateObjectTree(ObjectNodeData newValue, Hashtable oldValue)
-        {
+        {           
             foreach (var item in newValue.Children)
             {
                 if (item.Value != null)
@@ -121,5 +158,19 @@ namespace JsonFileWatcher
                 }
             }
         }
+    }
+
+    class ObjectTreeModificationInfo
+    {
+        public IEnumerable<string> AddedKeys { get; set; }
+        public IEnumerable<string> RemovedKeys { get; set; }
+
+        public ObjectTreeModificationInfo()
+        {
+            AddedKeys = new List<string>();
+            RemovedKeys = new List<string>();
+        }
+
+        public bool ModificationsOccured { get { return AddedKeys.Any() || RemovedKeys.Any(); }  }
     }
 }

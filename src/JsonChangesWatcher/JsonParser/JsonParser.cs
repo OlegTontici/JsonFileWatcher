@@ -51,7 +51,7 @@ namespace JsonFileWatcher.JsonParser
                     {
                         if (IsComposite(value.Type))
                         {
-                            node.Children.Add(GetNodes(value));
+                            node.AddChild(GetNodes(value));
                         }
                         else
                         {
@@ -64,7 +64,7 @@ namespace JsonFileWatcher.JsonParser
             {
                 foreach (var item in parrent.Children())
                 {
-                    node.Children.Add(GetNodes(item));
+                    node.AddChild(GetNodes(item));
                 }
             }
 
