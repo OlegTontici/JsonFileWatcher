@@ -35,10 +35,17 @@ namespace JsonFileWatcher.NodePresenters
             nodeContainer.Children.Add(childContainer);
         }
 
-        public override void AddChild(FrameworkElement child)
+        public override FrameworkElement GetNode()
         {
-            //child.Margin = new Thickness(0, 0, 0, 0);
-            //childContainer.Children.Add(child);
+            return nodeContainer;
+        }
+
+        protected override ItemsControl GetChildContainer()
+        {
+            return new ItemsControl
+            {
+                Height = double.NaN,
+            };
         }
     }
 }

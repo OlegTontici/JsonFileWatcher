@@ -35,7 +35,7 @@ namespace JsonFileWatcher
 
             if (modificationInfo.ModificationsOccured)
             {
-                foreach (var key in modificationInfo.RemovedKeys)
+                foreach (var key in modificationInfo.RemovedKeys.ToList())
                 {
                     flattenObjectsTree.Remove(key);
                 }
@@ -124,9 +124,6 @@ namespace JsonFileWatcher
                 default:
                     break;
             }
-
-            if (node.Type == NodeType.Object || node.Type == NodeType.Array)
-                return new NodeExpander(((ICompositeNode)nodePresenter));
 
             return nodePresenter.GetNode();
         }

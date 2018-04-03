@@ -15,7 +15,7 @@ namespace JsonFileWatcher.NodePresenters
         public CompositeNodeBase(ObjectNodeData nodeData)
         {
             nodeContainer = new StackPanel();
-            childContainer = new ItemsControl { Height = double.NaN };
+            childContainer = GetChildContainer();
 
             Binding binding = new Binding("Children")
             {
@@ -26,15 +26,14 @@ namespace JsonFileWatcher.NodePresenters
             childContainer.SetBinding(ItemsControl.ItemsSourceProperty, binding);
         }
 
-        public virtual void AddChild(FrameworkElement child)
-        {
-            //child.Margin = new Thickness(20, 0, 0, 0);
-            //childContainer.Children.Add(child);
-        }
-
         public virtual FrameworkElement GetNode()
         {
-            return nodeContainer;
+            var expander = new NodeExpander(nodeContainer);
+
+            expander.OnContentColapsed += (s, a) => HideContent();
+            expander.OnContentExpanded += (s, a) => ShowContent();
+
+            return expander;
         }
 
         public virtual void HideContent()
@@ -46,6 +45,15 @@ namespace JsonFileWatcher.NodePresenters
         public virtual void ShowContent()
         {
             childContainer.Height = childContainerHeight;
+        }
+
+        protected virtual ItemsControl GetChildContainer()
+        {
+            return new ItemsControl
+            {
+                Height = double.NaN,
+                Margin = new Thickness(20, 0, 0, 0)
+            };
         }
     }
 }
