@@ -56,9 +56,9 @@ namespace JsonFileWatcher
                 foreach (var key in AddedKeys)
                 {
                     string path = key;
-                    while (!oldKeys.Contains(CutObjectPath(path)))
+                    while (!oldKeys.Contains(GetParrentPath(path)))
                     {
-                        path = CutObjectPath(path);
+                        path = GetParrentPath(path);
                     }
 
                     if (!addedItemsRoot.Contains(path))
@@ -72,8 +72,8 @@ namespace JsonFileWatcher
                 foreach (var path in addedItemsRoot)
                 {
                     var newValue = newFlattenData[path];
-                    var oldValue = flattenObjectsTree[CutObjectPath(path)];
-                    Dispatcher.BeginInvoke(new Action(() => oldValue.Children.FirstOrDefault()?.AddChild(newValue)));
+                    var parrentNode = flattenObjectsTree[GetParrentPath(path)];
+                    Dispatcher.BeginInvoke(new Action(() => parrentNode.Children.FirstOrDefault()?.AddChild(newValue)));
                 }
                 objectTreeWasChanged = true;
             }
@@ -85,9 +85,9 @@ namespace JsonFileWatcher
                 foreach (var key in RemovedKeys.ToList())
                 {
                     string path = key;
-                    while (!newFlattenData.Keys.Contains(CutObjectPath(path)))
+                    while (!newFlattenData.Keys.Contains(GetParrentPath(path)))
                     {
-                        path = CutObjectPath(path);
+                        path = GetParrentPath(path);
                     }
 
                     if (!removedItemsRoot.Contains(path))
@@ -98,11 +98,11 @@ namespace JsonFileWatcher
                     flattenObjectsTree.Remove(key);
                 }
 
-                foreach (var item in removedItemsRoot)
+                foreach (var path in removedItemsRoot)
                 {
-                    var parrentNodeChildren = flattenObjectsTree[CutObjectPath(item)].Children.FirstOrDefault()?.Children;
-
-                    Dispatcher.BeginInvoke(new Action(() => parrentNodeChildren.Remove(parrentNodeChildren.FirstOrDefaultRecursive(c => c.Id == item,c => c.Children))));
+                    var parrentNodeChildren = flattenObjectsTree[GetParrentPath(path)].Children.FirstOrDefault()?.Children;
+                    var itemToRemove = parrentNodeChildren.FirstOrDefaultRecursive(c => c.Id == path, c => c.Children);
+                    Dispatcher.BeginInvoke(new Action(() => parrentNodeChildren.Remove(itemToRemove)));
                 }
 
                 objectTreeWasChanged = true;
@@ -111,8 +111,12 @@ namespace JsonFileWatcher
             return objectTreeWasChanged;            
         }
 
-        private string CutObjectPath(string path)
+        private string GetParrentPath(string path)
         {
+            if (path.EndsWith("]"))
+            {
+                return path.Substring(0, path.LastIndexOf('['));
+            }
             return path.Substring(0, path.LastIndexOf('.'));
         }
 
