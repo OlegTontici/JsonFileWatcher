@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace JsonFileWatcher.Extensions
 {
@@ -34,7 +35,12 @@ namespace JsonFileWatcher.Extensions
                 }
                 else
                 {
-                    return childSelector(item).FirstOrDefaultRecursive(predicate, childSelector);
+                    var result =  childSelector(item).FirstOrDefaultRecursive(predicate, childSelector);
+                    if(result == null)
+                    {
+                        continue;
+                    }
+                    return result;
                 }
             }
 
