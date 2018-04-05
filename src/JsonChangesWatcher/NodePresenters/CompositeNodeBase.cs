@@ -16,14 +16,8 @@ namespace JsonFileWatcher.NodePresenters
         {
             nodeContainer = new StackPanel();
             childContainer = GetChildContainer();
-
-            Binding binding = new Binding("Children")
-            {
-                Source = nodeData,
-                Converter = new NodeDataToControlConverter()
-            };
-
-            childContainer.SetBinding(ItemsControl.ItemsSourceProperty, binding);
+            childContainer.ItemsSource = nodeData.Children;
+            SetContentTemplateFor(childContainer);
         }
 
         public virtual FrameworkElement GetNode()
@@ -54,6 +48,14 @@ namespace JsonFileWatcher.NodePresenters
                 Height = double.NaN,
                 Margin = new Thickness(20, 0, 0, 0)
             };
+        }
+
+        private void SetContentTemplateFor(ItemsControl itemsControl)
+        {
+            FrameworkElementFactory frameworkElementFactory = new FrameworkElementFactory(typeof(ContentPresenter));
+            frameworkElementFactory.SetBinding(ContentPresenter.ContentProperty, new Binding() { Converter = new NodeDataToControlConverter() });
+            DataTemplate dataTemplate = new DataTemplate() { VisualTree = frameworkElementFactory };
+            itemsControl.ItemTemplate = dataTemplate;
         }
     }
 }

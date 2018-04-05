@@ -1,13 +1,7 @@
 ﻿using JsonFileWatcher.Models;
 using JsonFileWatcher.NodePresenters;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace JsonFileWatcher.Converters
@@ -16,51 +10,48 @@ namespace JsonFileWatcher.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            ObservableCollection<ObjectNodeData> children = value as ObservableCollection<ObjectNodeData>;
-            ItemCollection itemCollection = new ListBox().Items;
+            return GetNode(value as ObjectNodeData).GetNode();
+        }
 
-            foreach (var node in children)
-            {                
-                INode nodePresenter = null;
+        private INode GetNode(ObjectNodeData nodeData)
+        {
+            INode nodePresenter = null;
 
-                switch (node.Type)
-                {
-                    case NodeType.Object:
-                        nodePresenter = new ObjectNode(node);
-                        break;
-                    case NodeType.String:
-                        nodePresenter = new StringNode(node);
-                        break;
-                    case NodeType.Integer:
-                        nodePresenter = new IntegerNode(node);
-                        break;
-                    case NodeType.Boolean:
-                        break;
-                    case NodeType.Array:
-                        nodePresenter = new ArrayNode(node);
-                        break;
-                    case NodeType.Uri:
-                        break;
-                    case NodeType.Timespan:
-                        break;
-                    case NodeType.Date:
-                        break;
-                    case NodeType.Float:
-                        break;
-                    case NodeType.Null:
-                        break;
-                    case NodeType.Property:
-                        nodePresenter = new PropertyNode(node);
-                        break;
-                    case NodeType.None:
-                        break;
-                    default:
-                        break;
-                }
-                    itemCollection.Add(nodePresenter.GetNode());
+            switch (nodeData.Type)
+            {
+                case NodeType.Object:
+                    nodePresenter = new ObjectNode(nodeData);
+                    break;
+                case NodeType.String:
+                    nodePresenter = new StringNode(nodeData);
+                    break;
+                case NodeType.Integer:
+                    nodePresenter = new IntegerNode(nodeData);
+                    break;
+                case NodeType.Boolean:
+                    break;
+                case NodeType.Array:
+                    nodePresenter = new ArrayNode(nodeData);
+                    break;
+                case NodeType.Uri:
+                    break;
+                case NodeType.Timespan:
+                    break;
+                case NodeType.Date:
+                    break;
+                case NodeType.Float:
+                    break;
+                case NodeType.Null:
+                    break;
+                case NodeType.Property:
+                    nodePresenter = new PropertyNode(nodeData);
+                    break;
+                case NodeType.None:
+                    break;
+                default:
+                    break;
             }
-
-            return itemCollection;
+            return nodePresenter;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

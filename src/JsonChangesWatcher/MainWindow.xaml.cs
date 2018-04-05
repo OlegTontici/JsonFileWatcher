@@ -49,6 +49,7 @@ namespace JsonFileWatcher
                 fileSystemWatcher.Changed += (s, a) =>
                 {
                     fileSystemWatcher.EnableRaisingEvents = false;
+
                     string data = string.Empty;
 
                     try
@@ -59,7 +60,6 @@ namespace JsonFileWatcher
                     {
                         data = File.ReadAllText(fileName);
                     }
-
 
                     OnSourceUpdate(File.ReadAllText(fileName));
 

@@ -13,11 +13,11 @@ namespace JsonFileWatcher
 {
     public class JsonView : Border
     {
-        Hashtable flattenObjectsTree;
+        Dictionary<string,ObjectNodeData> flattenObjectsTree;
         private IJsonParser jsonParser;
         public JsonView(string json)
         {
-            flattenObjectsTree = new Hashtable();
+            flattenObjectsTree = new Dictionary<string, ObjectNodeData>();
             jsonParser = new JsonParser.JsonParser();
 
             ObjectNodeData objectsTree = jsonParser.Parse($"{{ \"data\" :{json} }}");
@@ -29,74 +29,91 @@ namespace JsonFileWatcher
 
         public void OnSourceUpdate(string json)
         {
-            ObjectNodeData newObjectsTree = jsonParser.Parse($"{{ \"data\" :{json} }}");
+            ObjectNodeData newObjectsTree = jsonParser.Parse($"{{ \"data\" :{json} }}");            
 
-            ObjectTreeModificationInfo modificationInfo = GetObjectsTreeModificationInfo(newObjectsTree);
-
-            if (modificationInfo.ModificationsOccured)
+            if (ObjectTreeWasChanged(newObjectsTree))
             {
-                foreach (var key in modificationInfo.RemovedKeys.ToList())
-                {
-                    flattenObjectsTree.Remove(key);
-                }
-
-                //Dispatcher.BeginInvoke(new Action(() => 
-                //{
-                //    Child = CreateUiTree(newObjectsTree);
-                //    FlatObjectsTree(newObjectsTree);
-                //    RemoveChilds();
-                //}));
-
                 return;
             }
 
             UpdateObjectTree(newObjectsTree, flattenObjectsTree);
         }
 
-        private ObjectTreeModificationInfo GetObjectsTreeModificationInfo(ObjectNodeData newNode)
+        private bool ObjectTreeWasChanged(ObjectNodeData newNode)
         {
-            ObjectTreeModificationInfo objectTreeModificationInfo = new ObjectTreeModificationInfo();
+            bool objectTreeWasChanged = false;
+            var newFlattenData = GetFlattenContent(newNode);
+            var oldKeys = flattenObjectsTree.Keys.ToList();
 
-            var newKeys = newNode.Children.SelectManyRecursive(node => node.Children).Select( n => n.Id);
-            var oldKeys = flattenObjectsTree.Keys.Cast<string>();
+            var AddedKeys = newFlattenData.Keys.Except(oldKeys);
+            var RemovedKeys = oldKeys.Except(newFlattenData.Keys);
+            
 
-            objectTreeModificationInfo.AddedKeys = newKeys.Except(oldKeys);
-            objectTreeModificationInfo.RemovedKeys = oldKeys.Except(newKeys);
-
-            List<string> addedRootNodes = new List<string>();
-            List<string> removedRootNodes = new List<string>();
-
-            foreach (var item in objectTreeModificationInfo.AddedKeys)
+            if (AddedKeys.Any())
             {
-                var asd = item.Substring(0, item.LastIndexOf('.'));
-                if(objectTreeModificationInfo.AddedKeys.Contains(asd) && !addedRootNodes.Contains(asd))
+                ICollection<string> addedItemsRoot = new List<string>();
+
+                foreach (var key in AddedKeys)
                 {
-                    addedRootNodes.Add(asd.Substring(0, asd.LastIndexOf('[')));
+                    string path = key;
+                    while (!oldKeys.Contains(CutObjectPath(path)))
+                    {
+                        path = CutObjectPath(path);
+                    }
+
+                    if (!addedItemsRoot.Contains(path))
+                    {
+                        addedItemsRoot.Add(path);
+                    }
+
+                    flattenObjectsTree.Add(key, newFlattenData[key]);
                 }
+
+                foreach (var path in addedItemsRoot)
+                {
+                    var newValue = newFlattenData[path];
+                    var oldValue = flattenObjectsTree[CutObjectPath(path)];
+                    Dispatcher.BeginInvoke(new Action(() => oldValue.Children.FirstOrDefault()?.AddChild(newValue)));
+                }
+                objectTreeWasChanged = true;
             }
 
-            foreach (var item in objectTreeModificationInfo.RemovedKeys)
+            if (RemovedKeys.Any())
             {
-                var asd = item.Substring(0, item.LastIndexOf('.'));
-                if (objectTreeModificationInfo.RemovedKeys.Contains(asd) && !removedRootNodes.Contains(asd))
+                ICollection<string> removedItemsRoot = new List<string>();
+
+                foreach (var key in RemovedKeys.ToList())
                 {
-                    removedRootNodes.Add(asd.Substring(0, asd.LastIndexOf('[')));
+                    string path = key;
+                    while (!newFlattenData.Keys.Contains(CutObjectPath(path)))
+                    {
+                        path = CutObjectPath(path);
+                    }
+
+                    if (!removedItemsRoot.Contains(path))
+                    {
+                        removedItemsRoot.Add(path);
+                    }
+
+                    flattenObjectsTree.Remove(key);
                 }
+
+                foreach (var item in removedItemsRoot)
+                {
+                    var parrentNodeChildren = flattenObjectsTree[CutObjectPath(item)].Children.FirstOrDefault()?.Children;
+
+                    Dispatcher.BeginInvoke(new Action(() => parrentNodeChildren.Remove(parrentNodeChildren.FirstOrDefaultRecursive(c => c.Id == item,c => c.Children))));
+                }
+
+                objectTreeWasChanged = true;
             }
 
-            var changedNode = addedRootNodes.FirstOrDefault();
-            var newItemsForNode = newNode.Children.FirstOrDefaultRecursive(n => n.Id == changedNode,k => k.Children);
-            var oldItemsForNode = flattenObjectsTree[changedNode];
-            (oldItemsForNode as ObjectNodeData).AddChild(new ObjectNodeData(Newtonsoft.Json.Linq.JTokenType.String)
-            {
-                Id = changedNode + "[4]",
-                Name = "NewNode",
-                Value = "NewValue"
-            });
-            //var diff = newItemsForNode.Children[0].Children.Except((oldItemsForNode as ObjectNodeData).Children[0].Children,new ObjectNodeDataComparer<ObjectNodeData>((x,y) => x.Children[0].Value.ToString() != y.Children[0].Value.ToString()));
-            //(oldItemsForNode as ObjectNodeData).Children[0].AddChild(diff.FirstOrDefault());
+            return objectTreeWasChanged;            
+        }
 
-            return objectTreeModificationInfo;
+        private string CutObjectPath(string path)
+        {
+            return path.Substring(0, path.LastIndexOf('.'));
         }
 
         private void FlatObjectsTree(ObjectNodeData node)
@@ -110,6 +127,29 @@ namespace JsonFileWatcher
                 FlatObjectsTree(item);
             }
         }
+        private Dictionary<string, ObjectNodeData> GetFlattenContent(ObjectNodeData nodeData)
+        {
+            Dictionary<string, ObjectNodeData> data = new Dictionary<string, ObjectNodeData>();
+
+            foreach (var item in nodeData.Children)
+            {
+                if (!data.ContainsKey(item.Id))
+                {
+                    data.Add(item.Id, item);
+                }
+
+                foreach (var childItem in GetFlattenContent(item))
+                {
+                    if (!data.ContainsKey(childItem.Key))
+                    {
+                        data.Add(childItem.Key, childItem.Value);
+                    }
+                }
+            }
+
+            return data;
+        }
+
 
         private void RemoveChilds()
         {
@@ -118,12 +158,11 @@ namespace JsonFileWatcher
             //    ((ObjectNodeData)item.Value).Children.Clear();
             //}
         }
-
         private FrameworkElement CreateUiTree(ObjectNodeData node)
         {
             return new ObjectNode(node).GetNode();
         }
-        private void UpdateObjectTree(ObjectNodeData newValue, Hashtable oldValue)
+        private void UpdateObjectTree(ObjectNodeData newValue, Dictionary<string, ObjectNodeData> oldValue)
         {
             foreach (var item in newValue.Children)
             {

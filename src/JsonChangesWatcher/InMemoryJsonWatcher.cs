@@ -7,7 +7,7 @@ namespace JsonFileWatcher
     public class InMemoryJsonWatcher
     {
         private SimpleWindow MW = null;
-        Application application;
+        private Application application;
         public InMemoryJsonWatcher()
         {
             Thread t = new Thread(new ThreadStart(() =>
