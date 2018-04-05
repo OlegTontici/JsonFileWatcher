@@ -40,12 +40,12 @@ namespace JsonFileWatcher
                     flattenObjectsTree.Remove(key);
                 }
 
-                Dispatcher.BeginInvoke(new Action(() => 
-                {
-                    Child = CreateUiTree(newObjectsTree);
-                    FlatObjectsTree(newObjectsTree);
-                    RemoveChilds();
-                }));
+                //Dispatcher.BeginInvoke(new Action(() => 
+                //{
+                //    Child = CreateUiTree(newObjectsTree);
+                //    FlatObjectsTree(newObjectsTree);
+                //    RemoveChilds();
+                //}));
 
                 return;
             }
@@ -62,6 +62,39 @@ namespace JsonFileWatcher
 
             objectTreeModificationInfo.AddedKeys = newKeys.Except(oldKeys);
             objectTreeModificationInfo.RemovedKeys = oldKeys.Except(newKeys);
+
+            List<string> addedRootNodes = new List<string>();
+            List<string> removedRootNodes = new List<string>();
+
+            foreach (var item in objectTreeModificationInfo.AddedKeys)
+            {
+                var asd = item.Substring(0, item.LastIndexOf('.'));
+                if(objectTreeModificationInfo.AddedKeys.Contains(asd) && !addedRootNodes.Contains(asd))
+                {
+                    addedRootNodes.Add(asd.Substring(0, asd.LastIndexOf('[')));
+                }
+            }
+
+            foreach (var item in objectTreeModificationInfo.RemovedKeys)
+            {
+                var asd = item.Substring(0, item.LastIndexOf('.'));
+                if (objectTreeModificationInfo.RemovedKeys.Contains(asd) && !removedRootNodes.Contains(asd))
+                {
+                    removedRootNodes.Add(asd.Substring(0, asd.LastIndexOf('[')));
+                }
+            }
+
+            var changedNode = addedRootNodes.FirstOrDefault();
+            var newItemsForNode = newNode.Children.FirstOrDefaultRecursive(n => n.Id == changedNode,k => k.Children);
+            var oldItemsForNode = flattenObjectsTree[changedNode];
+            (oldItemsForNode as ObjectNodeData).AddChild(new ObjectNodeData(Newtonsoft.Json.Linq.JTokenType.String)
+            {
+                Id = changedNode + "[4]",
+                Name = "NewNode",
+                Value = "NewValue"
+            });
+            //var diff = newItemsForNode.Children[0].Children.Except((oldItemsForNode as ObjectNodeData).Children[0].Children,new ObjectNodeDataComparer<ObjectNodeData>((x,y) => x.Children[0].Value.ToString() != y.Children[0].Value.ToString()));
+            //(oldItemsForNode as ObjectNodeData).Children[0].AddChild(diff.FirstOrDefault());
 
             return objectTreeModificationInfo;
         }
@@ -80,52 +113,15 @@ namespace JsonFileWatcher
 
         private void RemoveChilds()
         {
-            foreach (DictionaryEntry item in flattenObjectsTree)
-            {
-                ((ObjectNodeData)item.Value).Children.Clear();
-            }
+            //foreach (DictionaryEntry item in flattenObjectsTree)
+            //{
+            //    ((ObjectNodeData)item.Value).Children.Clear();
+            //}
         }
 
         private FrameworkElement CreateUiTree(ObjectNodeData node)
         {
-            INode nodePresenter = null;
-
-            switch (node.Type)
-            {
-                case NodeType.Object:
-                    nodePresenter = new ObjectNode(node);
-                    break;
-                case NodeType.String:
-                    nodePresenter = new StringNode(node);
-                    break;
-                case NodeType.Integer:
-                    nodePresenter = new IntegerNode(node);
-                    break;
-                case NodeType.Boolean:
-                    break;
-                case NodeType.Array:
-                    nodePresenter = new ArrayNode(node);
-                    break;
-                case NodeType.Uri:
-                    break;
-                case NodeType.Timespan:
-                    break;
-                case NodeType.Date:
-                    break;
-                case NodeType.Float:
-                    break;
-                case NodeType.Null:
-                    break;
-                case NodeType.Property:
-                    nodePresenter = new PropertyNode(node);
-                    break;
-                case NodeType.None:
-                    break;
-                default:
-                    break;
-            }
-
-            return nodePresenter.GetNode();
+            return new ObjectNode(node).GetNode();
         }
         private void UpdateObjectTree(ObjectNodeData newValue, Hashtable oldValue)
         {
@@ -148,6 +144,23 @@ namespace JsonFileWatcher
         }
     }
 
+    class ObjectNodeDataComparer<T> : IEqualityComparer<T>
+    {
+        private Func<T, T, bool> comparer;
+        public ObjectNodeDataComparer(Func<T, T, bool> comparer)
+        {
+            this.comparer = comparer;
+        }
+        public bool Equals(T x, T y)
+        {
+            return comparer(x, y);
+        }
+
+        public int GetHashCode(T obj)
+        {
+            return 0;
+        }
+    }
     class ObjectTreeModificationInfo
     {
         public IEnumerable<string> AddedKeys { get; set; }
