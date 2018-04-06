@@ -23,7 +23,7 @@ namespace JsonFileWatcher.Models
                 NotifyPropertyChanged(nameof(Value));
             }
         }
-        public ObservableCollection<ObjectNodeData> Children
+        public IReadOnlyCollection<ObjectNodeData> Children
         {
             get
             {
@@ -46,6 +46,20 @@ namespace JsonFileWatcher.Models
         public void AddChild(ObjectNodeData child)
         {
             _children.Add(child);
+        }
+        public void RemoveChild(ObjectNodeData child)
+        {
+            _children.Remove(child);
+        }
+
+        public void InsertChild(int index,ObjectNodeData child)
+        {
+            _children.Insert(index, child);
+        }
+
+        public int GetIndexFor(ObjectNodeData child)
+        {
+            return _children.IndexOf(child);
         }
 
         private NodeType GetNodeType(JTokenType type)

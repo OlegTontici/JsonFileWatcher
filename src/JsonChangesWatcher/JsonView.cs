@@ -2,7 +2,6 @@
 using JsonFileWatcher.JsonParser;
 using JsonFileWatcher.Models;
 using JsonFileWatcher.NodePresenters;
-using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Linq;
@@ -24,7 +23,6 @@ namespace JsonFileWatcher
             Child = CreateUiTree(objectsTree);
 
             FlatObjectsTree(objectsTree);
-            RemoveChilds();
         }
 
         public void OnSourceUpdate(string json)
@@ -51,7 +49,7 @@ namespace JsonFileWatcher
 
             if (AddedKeys.Any())
             {
-                ICollection<string> addedItemsRoot = new List<string>();
+                HashSet<string> addedItemsRoot = new HashSet<string>();
 
                 foreach (var key in AddedKeys)
                 {
@@ -60,27 +58,29 @@ namespace JsonFileWatcher
                     {
                         path = GetParrentPath(path);
                     }
-
-                    if (!addedItemsRoot.Contains(path))
-                    {
-                        addedItemsRoot.Add(path);
-                    }
+                   
+                    addedItemsRoot.Add(path);
 
                     flattenObjectsTree.Add(key, newFlattenData[key]);
                 }
 
                 foreach (var path in addedItemsRoot)
                 {
-                    var newValue = newFlattenData[path];
+                    var newValue = newFlattenData[path];                    
+                    var newValueParrent = newFlattenData[GetParrentPath(path)];
+                    int? newValuePosition = newValueParrent.Children.FirstOrDefault()?.GetIndexFor(newValue);
+
                     var parrentNode = flattenObjectsTree[GetParrentPath(path)];
-                    Dispatcher.BeginInvoke(new Action(() => parrentNode.Children.FirstOrDefault()?.AddChild(newValue)));
+
+                    Dispatcher.BeginInvoke(new Action(() => parrentNode.Children.FirstOrDefault()?.InsertChild(newValuePosition.Value, newValue)));
                 }
+
                 objectTreeWasChanged = true;
             }
 
             if (RemovedKeys.Any())
             {
-                ICollection<string> removedItemsRoot = new List<string>();
+                HashSet<string> removedItemsRoot = new HashSet<string>();
 
                 foreach (var key in RemovedKeys.ToList())
                 {
@@ -89,20 +89,17 @@ namespace JsonFileWatcher
                     {
                         path = GetParrentPath(path);
                     }
-
-                    if (!removedItemsRoot.Contains(path))
-                    {
-                        removedItemsRoot.Add(path);
-                    }
+                   
+                    removedItemsRoot.Add(path);
 
                     flattenObjectsTree.Remove(key);
                 }
 
                 foreach (var path in removedItemsRoot)
                 {
-                    var parrentNodeChildren = flattenObjectsTree[GetParrentPath(path)].Children.FirstOrDefault()?.Children;
-                    var itemToRemove = parrentNodeChildren.FirstOrDefaultRecursive(c => c.Id == path, c => c.Children);
-                    Dispatcher.BeginInvoke(new Action(() => parrentNodeChildren.Remove(itemToRemove)));
+                    var parrentNode = flattenObjectsTree[GetParrentPath(path)].Children.FirstOrDefault();
+                    var itemToRemove = parrentNode?.Children.FirstOrDefaultRecursive(c => c.Id == path, c => c.Children);
+                    Dispatcher.BeginInvoke(new Action(() => parrentNode.RemoveChild(itemToRemove)));
                 }
 
                 objectTreeWasChanged = true;
@@ -154,14 +151,6 @@ namespace JsonFileWatcher
             return data;
         }
 
-
-        private void RemoveChilds()
-        {
-            //foreach (DictionaryEntry item in flattenObjectsTree)
-            //{
-            //    ((ObjectNodeData)item.Value).Children.Clear();
-            //}
-        }
         private FrameworkElement CreateUiTree(ObjectNodeData node)
         {
             return new ObjectNode(node).GetNode();
@@ -183,43 +172,6 @@ namespace JsonFileWatcher
                 {
                     UpdateObjectTree(item, oldValue);
                 }
-            }
-        }
-    }
-
-    class ObjectNodeDataComparer<T> : IEqualityComparer<T>
-    {
-        private Func<T, T, bool> comparer;
-        public ObjectNodeDataComparer(Func<T, T, bool> comparer)
-        {
-            this.comparer = comparer;
-        }
-        public bool Equals(T x, T y)
-        {
-            return comparer(x, y);
-        }
-
-        public int GetHashCode(T obj)
-        {
-            return 0;
-        }
-    }
-    class ObjectTreeModificationInfo
-    {
-        public IEnumerable<string> AddedKeys { get; set; }
-        public IEnumerable<string> RemovedKeys { get; set; }
-
-        public ObjectTreeModificationInfo()
-        {
-            AddedKeys = new List<string>();
-            RemovedKeys = new List<string>();
-        }
-
-        public bool ModificationsOccured
-        {
-            get
-            {
-                return AddedKeys.Any() || RemovedKeys.Any();
             }
         }
     }

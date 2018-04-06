@@ -6,7 +6,7 @@ using System.Windows.Data;
 
 namespace JsonFileWatcher.NodePresenters
 {
-    public class CompositeNodeBase : ICompositeNode
+    public class CompositeNodeBase : INode
     {
         private double childContainerHeight = 0;
         protected StackPanel nodeContainer;
@@ -30,13 +30,13 @@ namespace JsonFileWatcher.NodePresenters
             return expander;
         }
 
-        public virtual void HideContent()
+        protected virtual void HideContent()
         {
             childContainerHeight = childContainer.Height;
             childContainer.Height = 0;
         }
 
-        public virtual void ShowContent()
+        protected virtual void ShowContent()
         {
             childContainer.Height = childContainerHeight;
         }
@@ -53,8 +53,8 @@ namespace JsonFileWatcher.NodePresenters
         private void SetContentTemplateFor(ItemsControl itemsControl)
         {
             FrameworkElementFactory frameworkElementFactory = new FrameworkElementFactory(typeof(ContentPresenter));
-            frameworkElementFactory.SetBinding(ContentPresenter.ContentProperty, new Binding() { Converter = new NodeDataToControlConverter() });
-            DataTemplate dataTemplate = new DataTemplate() { VisualTree = frameworkElementFactory };
+            frameworkElementFactory.SetBinding(ContentPresenter.ContentProperty, new Binding { Converter = new NodeDataToControlConverter() });
+            DataTemplate dataTemplate = new DataTemplate { VisualTree = frameworkElementFactory };
             itemsControl.ItemTemplate = dataTemplate;
         }
     }
