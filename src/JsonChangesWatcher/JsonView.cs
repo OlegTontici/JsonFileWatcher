@@ -68,24 +68,10 @@ namespace JsonFileWatcher
                 {
                     var newValue = newFlattenData[path];                    
                     var newValueParrent = newFlattenData[GetParrentPath(path)];
+                    var parrentNode = flattenObjectsTree[GetParrentPath(path)];
 
-                    if(newValueParrent.Type == NodeType.Object)
-                    {
-                        int? newValuePosition = newValueParrent?.GetIndexFor(newValue);
-
-                        var parrentNode = flattenObjectsTree[GetParrentPath(path)];
-
-                        Dispatcher.BeginInvoke(new Action(() => parrentNode?.InsertChild(newValuePosition.Value, newValue)));
-                    }
-                    else
-                    {
-                        int? newValuePosition = newValueParrent.Children.FirstOrDefault()?.GetIndexFor(newValue);
-
-                        var parrentNode = flattenObjectsTree[GetParrentPath(path)];
-
-                        Dispatcher.BeginInvoke(new Action(() => parrentNode.Children.FirstOrDefault()?.InsertChild(newValuePosition.Value, newValue)));
-                    }
-                    
+                    int? newValuePosition = newValueParrent?.GetIndexFor(newValue);
+                    Dispatcher.BeginInvoke(new Action(() => parrentNode?.InsertChild(newValuePosition.Value, newValue)));
                 }
 
                 objectTreeWasChanged = true;
@@ -112,17 +98,13 @@ namespace JsonFileWatcher
                 {
                     var parrentNode = flattenObjectsTree[GetParrentPath(path)];
 
-                    if(parrentNode.Type == NodeType.Object)
+                    if(parrentNode.Type == NodeType.Property)
                     {
-                        var itemToRemove = parrentNode?.Children.FirstOrDefaultRecursive(c => c.Id == path, c => c.Children);
-                        Dispatcher.BeginInvoke(new Action(() => parrentNode.RemoveChild(itemToRemove)));
+                        parrentNode = parrentNode.Children.FirstOrDefault();
                     }
-                    else
-                    {
-                        parrentNode = flattenObjectsTree[GetParrentPath(path)].Children.FirstOrDefault();
-                        var itemToRemove = parrentNode?.Children.FirstOrDefaultRecursive(c => c.Id == path, c => c.Children);
-                        Dispatcher.BeginInvoke(new Action(() => parrentNode.RemoveChild(itemToRemove)));
-                    }                    
+
+                    var itemToRemove = parrentNode?.Children.FirstOrDefaultRecursive(c => c.Id == path, c => c.Children);
+                    Dispatcher.BeginInvoke(new Action(() => parrentNode.RemoveChild(itemToRemove)));
                 }
 
                 objectTreeWasChanged = true;
