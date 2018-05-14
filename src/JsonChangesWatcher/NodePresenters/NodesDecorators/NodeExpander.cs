@@ -1,10 +1,9 @@
-﻿using JsonFileWatcher.NodePresenters;
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace JsonFileWatcher
+namespace JsonFileWatcher.NodePresenters.NodesDecorators
 {
     public class NodeExpander : StackPanel
     {

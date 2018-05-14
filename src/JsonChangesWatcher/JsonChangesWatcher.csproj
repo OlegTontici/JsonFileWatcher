@@ -59,10 +59,13 @@
     </ApplicationDefinition>
     <Compile Include="Converters\NodeDataToControlConverter.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
-    <Compile Include="SimpleWindow.xaml.cs">
+    <Compile Include="IJsonUIFactory.cs" />
+    <Compile Include="JsonChangesObserver.cs" />
+    <Compile Include="NodePresenters\JsonAsUITreeFactory.cs" />
+    <Compile Include="InMemoryJsonWatcher\SimpleWindow.xaml.cs">
       <DependentUpon>SimpleWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="MainWindow.xaml">
+    <Page Include="FileJsonWatcher\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -70,24 +73,23 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ChangedValueMarker.cs" />
+    <Compile Include="NodePresenters\NodesDecorators\ChangedValueMarker.cs" />
     <Compile Include="Converters\StringToFormatedStringConverter.cs" />
-    <Compile Include="InMemoryJsonWatcher.cs" />
+    <Compile Include="InMemoryJsonWatcher\InMemoryJsonWatcher.cs" />
     <Compile Include="JsonParser\IJsonParser.cs" />
     <Compile Include="JsonParser\JsonParser.cs" />
-    <Compile Include="JsonView.cs" />
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="FileJsonWatcher\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="SimpleWindow.xaml">
+    <Page Include="InMemoryJsonWatcher\SimpleWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\ObjectNodeData.cs" />
-    <Compile Include="NodeExpander.cs" />
+    <Compile Include="NodePresenters\NodesDecorators\NodeExpander.cs" />
     <Compile Include="NodePresenters\ArrayNode.cs" />
     <Compile Include="NodePresenters\ICompositeNode.cs" />
     <Compile Include="NodePresenters\INode.cs" />

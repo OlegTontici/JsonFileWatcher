@@ -1,9 +1,10 @@
-﻿using Microsoft.Win32;
+﻿using JsonFileWatcher.NodePresenters;
+using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Windows;
 
-namespace JsonFileWatcher
+namespace JsonFileWatcher.FileJsonWatcher
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -11,7 +12,8 @@ namespace JsonFileWatcher
     public partial class MainWindow : Window
     {
         private const string fileExtensionFilter = "(*.json) | *.json";
-        private JsonView jsonView;
+        private JsonChangesObserver jsonSchemaChangesObserver;
+        private IJsonUIFactory jsonUIFactory;
         public MainWindow()
         {
             InitializeComponent();
@@ -19,7 +21,7 @@ namespace JsonFileWatcher
 
         public void OnSourceUpdate(string json)
         {
-            jsonView.OnSourceUpdate(json);
+            jsonSchemaChangesObserver.OnSourceUpdate(json);
         }
 
         private void ChooseFileButtonClickEventHandler(object sender, RoutedEventArgs e)
@@ -37,8 +39,11 @@ namespace JsonFileWatcher
 
                 ChoosenPath.Text = fileName;
 
-                jsonView = new JsonView(File.ReadAllText(fileName));
-                RootContainer.Child = jsonView;
+                string json = File.ReadAllText(fileName);
+                jsonSchemaChangesObserver = new JsonChangesObserver(json, new JsonParser.JsonParser());
+                jsonUIFactory = new JsonAsUITreeFactory(jsonSchemaChangesObserver.GetJsonAsObjectsTree());
+                var jsonUI = jsonUIFactory.GetJsonAsUIElement();
+                RootContainer.Child = jsonUI;
 
                 FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(Directory.GetParent(fileName).FullName, new FileInfo(fileName).Name)
                 {
@@ -61,7 +66,7 @@ namespace JsonFileWatcher
                         data = File.ReadAllText(fileName);
                     }
 
-                    OnSourceUpdate(File.ReadAllText(fileName));
+                    OnSourceUpdate(data);
 
                     fileSystemWatcher.EnableRaisingEvents = true;
                 };

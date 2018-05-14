@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using JsonFileWatcher.Extensions;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows;
 
 namespace JsonFileWatcher.Models
 {
@@ -13,6 +15,7 @@ namespace JsonFileWatcher.Models
         private ObservableCollection<ObjectNodeData> _children;
         private Action<int, ObjectNodeData> insertChild;
         private Func<ObjectNodeData, int> getChildIndex;
+        private Action<ObjectNodeData> removeChild;
 
         public string Id { get; set; }
         public NodeType Type { get; set; }
@@ -40,15 +43,19 @@ namespace JsonFileWatcher.Models
         {
             _children = new ObservableCollection<ObjectNodeData>();
             Type = GetNodeType(type);
+
+            // TODO - get things below done right
             if(Type == NodeType.Property)
             {
                 insertChild = (index,child) => _children.FirstOrDefault().InsertChild(index,child);
                 getChildIndex = (child) => _children.FirstOrDefault().GetIndexFor(child);
+                removeChild = (child) => _children.FirstOrDefault().RemoveChild(child);
             }
             else
             {
                 insertChild = (index, child) => _children.Insert(index, child);
                 getChildIndex = (child) => _children.IndexOf(child);
+                removeChild = (child) => _children.Remove(child);
             }
         }
         public ObjectNodeData()
@@ -62,17 +69,21 @@ namespace JsonFileWatcher.Models
         }
         public void RemoveChild(ObjectNodeData child)
         {
-            _children.Remove(child);
+            ExecuteOnDispatcherThread(() => removeChild(child));
         }
 
         public void InsertChild(int index,ObjectNodeData child)
         {
-            insertChild(index, child);
+            ExecuteOnDispatcherThread(() => insertChild(index, child));
         }
 
         public int GetIndexFor(ObjectNodeData child)
         {
             return getChildIndex(child);
+        }
+        public ObjectNodeData GetChildren(string path)
+        {
+            return _children.FirstOrDefaultRecursive(c => c.Id == path, c => c.Children);
         }
 
         private NodeType GetNodeType(JTokenType type)
@@ -124,6 +135,10 @@ namespace JsonFileWatcher.Models
         private void NotifyPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        private void ExecuteOnDispatcherThread(Action actionToExecute)
+        {
+            Application.Current.Dispatcher.BeginInvoke(actionToExecute);
         }
     }
 

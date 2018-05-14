@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Windows;
 
-namespace JsonFileWatcher
+namespace JsonFileWatcher.InMemoryJsonWatcher
 {
     public class InMemoryJsonWatcher
     {

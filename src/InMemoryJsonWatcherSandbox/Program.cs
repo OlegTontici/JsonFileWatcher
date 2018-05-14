@@ -1,4 +1,4 @@
-﻿using JsonFileWatcher;
+﻿using JsonFileWatcher.InMemoryJsonWatcher;
 using System;
 using System.Threading;
 
